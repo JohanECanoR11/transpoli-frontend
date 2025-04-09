@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Mapa Transpoli</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Leaflet Awesome Markers CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.css" />
+
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+        #map {
+            height: 90vh;
+            width: 100%;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+        }
+
+        #leyenda {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Ubicación en Tiempo Real - Rutas</h1>
+    <div id="map"></div>
+    <div id="leyenda"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Leaflet Awesome Markers JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.js"></script>
+
+    <script>
+        // Inicializar el mapa
+        const map = L.map('map').setView([4.658, -74.093], 14);
+
+        // Cargar tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors',
+        }).addTo(map);
+
+        // Colores para cada ruta
+        const colores = ['blue', 'red', 'green', 'orange', 'purple', 'darkred', 'cadetblue'];
+        const marcadores = {};
+
+        // Cargar ubicaciones desde el backend
+        async function cargarUbicaciones() {
+            try {
+                const res = await fetch('http://localhost:3000/api/ubicaciones/todas/ultimas');
+                const datos = await res.json();
+
+                datos.forEach((ruta, index) => {
+                    if (!ruta.latitud || !ruta.longitud) return;
+
+                    const coords = [parseFloat(ruta.latitud), parseFloat(ruta.longitud)];
+                    const color = colores[index % colores.length];
+
+                    const icono = L.AwesomeMarkers.icon({
+                        icon: 'bus',
+                        markerColor: color,
+                        prefix: 'fa'
+                    });
+
+                    if (marcadores[ruta.ruta_id]) {
+                        marcadores[ruta.ruta_id].setLatLng(coords);
+                    } else {
+                        const marcador = L.marker(coords, { icon: icono }).addTo(map);
+                        marcador.bindPopup(`
+                            <b>Ruta ${ruta.ruta_id}</b><br>
+                            Nombre: ${ruta.nombre}<br>
+                            Conductor: ${ruta.conductor || 'N/A'}<br>
+                            Hora: ${ruta.fecha_hora ? new Date(ruta.fecha_hora).toLocaleTimeString() : 'Sin dato'}
+                        `);
+                        marcadores[ruta.ruta_id] = marcador;
+                    }
+                });
+
+                actualizarLeyenda(datos);
+            } catch (error) {
+                console.error('Error al cargar ubicaciones:', error);
+            }
+        }
+
+        // Actualizar la leyenda lateral
+        function actualizarLeyenda(rutas) {
+            const leyenda = document.getElementById('leyenda');
+            leyenda.innerHTML = '<h4>🚌 Leyenda</h4>';
+            rutas.forEach((ruta, index) => {
+                if (!ruta.latitud || !ruta.longitud) return;
+                const color = colores[index % colores.length];
+                leyenda.innerHTML += `<div><span style="color:${color};font-weight:bold;">●</span> Ruta ${ruta.ruta_id} - ${ruta.nombre}</div>`;
+            });
+        }
+
+        // Ejecutar y actualizar cada 5 segundos
+        cargarUbicaciones();
+        setInterval(cargarUbicaciones, 5000);
+    </script>
+</body>
+
+</html>
