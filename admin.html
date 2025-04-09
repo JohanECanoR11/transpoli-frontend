@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Administrador</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef5ff;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #007bff;
+    }
+    .contenido {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Bienvenido Administrador</h1>
+  <div class="contenido">
+    <p>Este es el panel de administración del sistema Transpoli.</p>
+    <p id="infoUsuario"></p>
+  </div>
+
+  <script>
+    // Verificar token en localStorage
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Acceso no autorizado. Redirigiendo al login.');
+      window.location.href = 'login.html';
+    }
+
+    // Decodificar JWT (sin validación) para obtener el rol (opcional para mostrar info)
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    document.getElementById('infoUsuario').textContent = `Usuario: ${payload.nombre} | Rol: ${payload.rol}`;
+
+    // Si el rol no es administrador, redirigir
+    if (payload.rol !== 'administrador') {
+      alert('No tienes permiso para acceder a esta página.');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+
+</html>

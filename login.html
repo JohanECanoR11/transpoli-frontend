@@ -109,23 +109,19 @@
 
         if (res.ok) {
           localStorage.setItem('token', data.token);
-          localStorage.setItem('usuario', JSON.stringify(data.usuario));
-          mensaje.style.color = 'green';
-          mensaje.textContent = 'Inicio de sesión exitoso';
 
-          // Redirigir por rol
-          switch (data.usuario.rol) {
-            case 'administrador':
-              window.location.href = 'admin.html';
-              break;
-            case 'conductor':
-              window.location.href = 'conductor.html';
-              break;
-            case 'estudiante':
-              window.location.href = 'estudiante.html';
-              break;
-            default:
-              mensaje.textContent = 'Rol no reconocido';
+          alert('Bienvenido ' + data.usuario.nombre);
+
+          // Redireccionar según el rol
+          const rol = data.usuario.rol;
+          if (rol === 'administrador') {
+            window.location.href = 'admin.html';
+          } else if (rol === 'conductor') {
+            window.location.href = 'conductor.html';
+          } else if (rol === 'estudiante') {
+            window.location.href = 'estudiante.html';
+          } else {
+            mensaje.textContent = 'Rol no reconocido';
           }
 
         } else {

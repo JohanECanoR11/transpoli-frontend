@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel del Estudiante</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff;
+      padding: 20px;
+    }
+    h1 {
+      color: #007bff;
+    }
+    .usuario-info {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ccc;
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bienvenido Estudiante</h1>
+  <div class="usuario-info" id="info"></div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const infoDiv = document.getElementById('info');
+
+    if (!token) {
+      window.location.href = 'login.html';
+    } else {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.rol !== 'estudiante') {
+          window.location.href = 'login.html';
+        } else {
+          infoDiv.innerHTML = `
+            <p><strong>Nombre:</strong> ${payload.nombre}</p>
+            <p><strong>Correo:</strong> ${payload.correo}</p>
+            <p><strong>Rol:</strong> ${payload.rol}</p>
+          `;
+        }
+      } catch (error) {
+        console.error('Token inválido:', error);
+        window.location.href = 'login.html';
+      }
+    }
+  </script>
+</body>
+</html>
