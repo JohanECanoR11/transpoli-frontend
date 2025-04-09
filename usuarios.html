@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Usuarios - Admin</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef5ff;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #007bff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn {
+      padding: 5px 10px;
+      margin: 2px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .btn-editar {
+      background-color: #ffc107;
+    }
+
+    .btn-eliminar {
+      background-color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gestión de Usuarios</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tablaUsuarios"></tbody>
+  </table>
+
+  <script>
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      alert('No autorizado');
+      window.location.href = 'login.html';
+    }
+
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.rol !== 'administrador') {
+      alert('Solo administradores pueden acceder.');
+      window.location.href = 'login.html';
+    }
+
+    async function cargarUsuarios() {
+      try {
+        const res = await fetch('http://localhost:3000/api/usuarios', {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        const usuarios = await res.json();
+        const tabla = document.getElementById('tablaUsuarios');
+        tabla.innerHTML = '';
+        usuarios.forEach(u => {
+          tabla.innerHTML += `
+            <tr>
+              <td>${u.id}</td>
+              <td>${u.nombre}</td>
+              <td>${u.correo}</td>
+              <td>${u.rol}</td>
+              <td>
+                <button class="btn btn-editar" onclick="editarUsuario(${u.id})">Editar</button>
+                <button class="btn btn-eliminar" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error('Error al cargar usuarios:', err);
+      }
+    }
+
+    function editarUsuario(id) {
+    const nuevoNombre = prompt('Nuevo nombre:');
+    const nuevoCorreo = prompt('Nuevo correo:');
+    const nuevoRol = prompt('Nuevo rol (administrador, conductor, estudiante):');
+
+    if (!nuevoNombre || !nuevoCorreo || !nuevoRol) {
+      alert('Todos los campos son obligatorios.');
+      return;
+    }
+
+    fetch(`http://localhost:3000/api/usuarios/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        nombre: nuevoNombre,
+        correo: nuevoCorreo,
+        rol: nuevoRol
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.mensaje);
+        cargarUsuarios();
+      })
+      .catch(err => {
+        console.error('Error al editar usuario:', err);
+      });
+    }
+
+    async function eliminarUsuario(id) {
+      if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
+      try {
+        const res = await fetch(`http://localhost:3000/api/usuarios/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        alert(data.mensaje);
+        cargarUsuarios();
+      } catch (err) {
+        console.error('Error al eliminar usuario:', err);
+      }
+    }
+
+    cargarUsuarios();
+  </script>
+</body>
+</html>
