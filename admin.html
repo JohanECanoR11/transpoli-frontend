@@ -20,7 +20,7 @@
       background-color: white;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
     table {
@@ -62,6 +62,7 @@
       padding: 10px 15px;
       cursor: pointer;
       border-radius: 5px;
+      margin-right: 5px;
     }
 
     button:hover {
@@ -106,6 +107,7 @@
           <th>Destino</th>
           <th>Hora Salida</th>
           <th>Hora Llegada</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody id="tablaRutas"></tbody>
@@ -117,13 +119,11 @@
     const infoUsuario = document.getElementById('infoUsuario');
     const mensajeRuta = document.getElementById('mensajeRuta');
 
-    // Redirección si no hay token
     if (!token) {
       alert('Acceso no autorizado. Redirigiendo al login.');
       window.location.href = 'login.html';
     }
 
-    // Obtener datos del token
     const payload = JSON.parse(atob(token.split('.')[1]));
     infoUsuario.textContent = `Usuario: ${payload.nombre} | Rol: ${payload.rol}`;
 
@@ -132,7 +132,6 @@
       window.location.href = 'login.html';
     }
 
-    // Cargar rutas en la tabla
     async function cargarRutas() {
       try {
         const res = await fetch('http://localhost:3000/api/rutas', {
@@ -151,6 +150,10 @@
               <td>${ruta.destino}</td>
               <td>${ruta.hora_salida}</td>
               <td>${ruta.hora_llegada}</td>
+              <td>
+                <button onclick="eliminarRuta(${ruta.id})">Eliminar</button>
+                <button onclick="editarRuta(${ruta.id}, '${ruta.nombre}', '${ruta.origen}', '${ruta.destino}', '${ruta.hora_salida}', '${ruta.hora_llegada}')">Editar</button>
+              </td>
             </tr>
           `;
         });
@@ -159,7 +162,6 @@
       }
     }
 
-    // Registrar nueva ruta
     async function registrarRuta() {
       const nombre = document.getElementById('nombre').value.trim();
       const origen = document.getElementById('origen').value.trim();
@@ -197,6 +199,56 @@
         console.error('Error al registrar ruta:', error);
         mensajeRuta.textContent = 'Error al conectar con el servidor';
         mensajeRuta.className = 'mensaje error';
+      }
+    }
+
+    async function eliminarRuta(id) {
+      if (!confirm('¿Estás seguro de eliminar esta ruta?')) return;
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/rutas/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        const data = await res.json();
+        alert(data.mensaje);
+        cargarRutas();
+      } catch (error) {
+        console.error('Error al eliminar ruta:', error);
+      }
+    }
+
+    async function editarRuta(id, nombre, origen, destino, hora_salida, hora_llegada) {
+      const nuevoNombre = prompt('Nuevo nombre:', nombre);
+      const nuevoOrigen = prompt('Nuevo origen:', origen);
+      const nuevoDestino = prompt('Nuevo destino:', destino);
+      const nuevaSalida = prompt('Nueva hora de salida:', hora_salida);
+      const nuevaLlegada = prompt('Nueva hora de llegada:', hora_llegada);
+
+      if (!nuevoNombre || !nuevoOrigen || !nuevoDestino || !nuevaSalida || !nuevaLlegada) return;
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/rutas/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({
+            nombre: nuevoNombre,
+            origen: nuevoOrigen,
+            destino: nuevoDestino,
+            hora_salida: nuevaSalida,
+            hora_llegada: nuevaLlegada
+          })
+        });
+
+        const data = await res.json();
+        alert(data.mensaje);
+        cargarRutas();
+      } catch (error) {
+        console.error('Error al editar ruta:', error);
       }
     }
 
