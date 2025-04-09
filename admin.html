@@ -11,14 +11,70 @@
       margin: 0;
       padding: 20px;
     }
+
     h1 {
       color: #007bff;
     }
+
     .contenido {
       background-color: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #fff;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .formulario {
+      margin-top: 30px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 15px 0;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .mensaje {
+      margin-top: 10px;
+      color: green;
+    }
+
+    .error {
+      color: red;
     }
   </style>
 </head>
@@ -28,25 +84,123 @@
   <div class="contenido">
     <p>Este es el panel de administración del sistema Transpoli.</p>
     <p id="infoUsuario"></p>
+
+    <h2>Registrar nueva ruta</h2>
+    <div class="formulario">
+      <input type="text" id="nombre" placeholder="Nombre de la ruta" required />
+      <input type="text" id="origen" placeholder="Origen" required />
+      <input type="text" id="destino" placeholder="Destino" required />
+      <input type="time" id="hora_salida" required />
+      <input type="time" id="hora_llegada" required />
+      <button onclick="registrarRuta()">Registrar</button>
+      <p class="mensaje" id="mensajeRuta"></p>
+    </div>
+
+    <h2>Rutas registradas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Origen</th>
+          <th>Destino</th>
+          <th>Hora Salida</th>
+          <th>Hora Llegada</th>
+        </tr>
+      </thead>
+      <tbody id="tablaRutas"></tbody>
+    </table>
   </div>
 
   <script>
-    // Verificar token en localStorage
     const token = localStorage.getItem('token');
+    const infoUsuario = document.getElementById('infoUsuario');
+    const mensajeRuta = document.getElementById('mensajeRuta');
+
+    // Redirección si no hay token
     if (!token) {
       alert('Acceso no autorizado. Redirigiendo al login.');
       window.location.href = 'login.html';
     }
 
-    // Decodificar JWT (sin validación) para obtener el rol (opcional para mostrar info)
+    // Obtener datos del token
     const payload = JSON.parse(atob(token.split('.')[1]));
-    document.getElementById('infoUsuario').textContent = `Usuario: ${payload.nombre} | Rol: ${payload.rol}`;
+    infoUsuario.textContent = `Usuario: ${payload.nombre} | Rol: ${payload.rol}`;
 
-    // Si el rol no es administrador, redirigir
     if (payload.rol !== 'administrador') {
       alert('No tienes permiso para acceder a esta página.');
       window.location.href = 'login.html';
     }
+
+    // Cargar rutas en la tabla
+    async function cargarRutas() {
+      try {
+        const res = await fetch('http://localhost:3000/api/rutas', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const rutas = await res.json();
+
+        const tabla = document.getElementById('tablaRutas');
+        tabla.innerHTML = '';
+        rutas.forEach(ruta => {
+          tabla.innerHTML += `
+            <tr>
+              <td>${ruta.id}</td>
+              <td>${ruta.nombre}</td>
+              <td>${ruta.origen}</td>
+              <td>${ruta.destino}</td>
+              <td>${ruta.hora_salida}</td>
+              <td>${ruta.hora_llegada}</td>
+            </tr>
+          `;
+        });
+      } catch (error) {
+        console.error('Error al cargar rutas:', error);
+      }
+    }
+
+    // Registrar nueva ruta
+    async function registrarRuta() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const origen = document.getElementById('origen').value.trim();
+      const destino = document.getElementById('destino').value.trim();
+      const hora_salida = document.getElementById('hora_salida').value;
+      const hora_llegada = document.getElementById('hora_llegada').value;
+
+      if (!nombre || !origen || !destino || !hora_salida || !hora_llegada) {
+        mensajeRuta.textContent = 'Todos los campos son obligatorios';
+        mensajeRuta.className = 'mensaje error';
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:3000/api/rutas', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ nombre, origen, destino, hora_salida, hora_llegada })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          mensajeRuta.textContent = 'Ruta registrada correctamente';
+          mensajeRuta.className = 'mensaje';
+          cargarRutas();
+        } else {
+          mensajeRuta.textContent = data.mensaje || 'Error al registrar la ruta';
+          mensajeRuta.className = 'mensaje error';
+        }
+      } catch (error) {
+        console.error('Error al registrar ruta:', error);
+        mensajeRuta.textContent = 'Error al conectar con el servidor';
+        mensajeRuta.className = 'mensaje error';
+      }
+    }
+
+    cargarRutas();
   </script>
 </body>
 
