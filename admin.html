@@ -82,11 +82,29 @@
     .error {
       color: red;
     }
+    
+    .btn-logout {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-logout:hover {
+      background-color: #c82333;
+    }
   </style>
 </head>
 
 <body>
   <h1>Bienvenido Administrador</h1>
+  <div style="margin-bottom: 20px; text-align: right;">
+    <button onclick="logout()" class="btn-logout">🔒 Cerrar sesión</button>
+  </div>  
   <div style="margin-bottom: 20px;">
     <button onclick="window.location.href='usuarios.html'">👥 Gestión de Usuarios</button>
   </div>
@@ -354,6 +372,11 @@
     cargarRutas();
     cargarUbicacionesMapa();
     setInterval(cargarUbicacionesMapa, 5000);
+
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+    }
   </script>
 </body>
 

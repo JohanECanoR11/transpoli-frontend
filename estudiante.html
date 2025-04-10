@@ -1,53 +1,155 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Panel del Estudiante</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f0f8ff;
+      background-color: #f4f9ff;
+      margin: 0;
       padding: 20px;
     }
+
     h1 {
       color: #007bff;
     }
-    .usuario-info {
-      background: white;
-      padding: 15px;
+
+    .info {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #mapaRuta {
+      height: 400px;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+    }
+
+    .btn-logout {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
       border-radius: 8px;
-      box-shadow: 0 0 10px #ccc;
-      max-width: 400px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-logout:hover {
+      background-color: #c82333;
     }
   </style>
 </head>
+
 <body>
   <h1>Bienvenido Estudiante</h1>
-  <div class="usuario-info" id="info"></div>
+  <div style="margin-bottom: 20px; text-align: right;">
+    <button onclick="logout()" class="btn-logout">🔒 Cerrar sesión</button>
+  </div>  
+  <div class="info">
+    <p id="nombreUsuario"></p>
+    <p><strong>Ruta asignada:</strong> <span id="nombreRuta"></span></p>
+    <p><strong>Origen:</strong> <span id="origenRuta"></span></p>
+    <p><strong>Destino:</strong> <span id="destinoRuta"></span></p>
+    <p><strong>Hora salida:</strong> <span id="horaSalida"></span></p>
+    <p><strong>Hora llegada:</strong> <span id="horaLlegada"></span></p>
+  </div>
 
+  <div id="mapaRuta"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const token = localStorage.getItem('token');
-    const infoDiv = document.getElementById('info');
-
     if (!token) {
+      alert('Acceso denegado');
       window.location.href = 'login.html';
-    } else {
+    }
+
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.rol !== 'estudiante') {
+      alert('Acceso no autorizado');
+      window.location.href = 'login.html';
+    }
+
+    document.getElementById('nombreUsuario').textContent = `Usuario: ${payload.nombre}`;
+
+    let marcador;
+
+    async function obtenerRuta() {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.rol !== 'estudiante') {
-          window.location.href = 'login.html';
-        } else {
-          infoDiv.innerHTML = `
-            <p><strong>Nombre:</strong> ${payload.nombre}</p>
-            <p><strong>Correo:</strong> ${payload.correo}</p>
-            <p><strong>Rol:</strong> ${payload.rol}</p>
-          `;
-        }
+        const res = await fetch(`http://localhost:3000/api/estudiante/ruta`, {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+
+        if (!res.ok) throw new Error('No se encontró la ruta asignada');
+
+        const ruta = await res.json();
+        document.getElementById('nombreRuta').textContent = ruta.nombre;
+        document.getElementById('origenRuta').textContent = ruta.origen;
+        document.getElementById('destinoRuta').textContent = ruta.destino;
+        document.getElementById('horaSalida').textContent = ruta.hora_salida;
+        document.getElementById('horaLlegada').textContent = ruta.hora_llegada;
+
+        iniciarMapa(ruta.id, ruta.nombre);
       } catch (error) {
-        console.error('Token inválido:', error);
-        window.location.href = 'login.html';
+        console.error('Error:', error);
+        alert('No se pudo obtener la ruta asignada');
       }
+    }
+
+    let mapa;
+    function iniciarMapa(rutaId, nombreRuta) {
+      mapa = L.map('mapaRuta').setView([4.658, -74.093], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(mapa);
+
+      setInterval(() => actualizarUbicacion(rutaId, nombreRuta), 5000);
+      actualizarUbicacion(rutaId, nombreRuta);
+    }
+
+    let primeraActualizacion = true;
+
+    async function actualizarUbicacion(rutaId, nombreRuta) {  
+      try {
+        const res = await fetch(`http://localhost:3000/api/ubicaciones/ruta/${rutaId}`);
+        const ubicaciones = await res.json();
+
+        if (ubicaciones.length === 0) return;
+
+        const ultima = ubicaciones[0];
+        const coords = [parseFloat(ultima.latitud), parseFloat(ultima.longitud)];
+
+        if (marcador) {
+          marcador.setLatLng(coords);
+        } else {
+          marcador = L.marker(coords).addTo(mapa);
+          marcador.bindPopup(`🚌 ${nombreRuta}<br>${ultima.fecha_hora}`).openPopup();
+        }
+      } catch (err) {
+        console.error('Error al obtener ubicación:', err);
+      }
+      if (primeraActualizacion) {
+        mapa.setView(coords, 14);
+        primeraActualizacion = false;
+      }
+    }
+
+    obtenerRuta();
+
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
     }
   </script>
 </body>
+
 </html>
