@@ -5,67 +5,19 @@
   <meta charset="UTF-8">
   <title>Panel del Conductor</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #eef5ff;
-      padding: 20px;
-    }
-
-    h1 {
-      color: #007bff;
-    }
-
-    #mapa {
-      height: 400px;
-      margin-top: 20px;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-    }
-
-    .info {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 20px;
-    }
-
-    .mensaje {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
-    .mensaje.success {
-      color: green;
-    }
-
-    .mensaje.error {
-      color: red;
-    }
-
-    .btn-logout {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }   
-
-    .btn-logout:hover {
-      background-color: #c82333;
-    }
-  </style>
+  <link rel="stylesheet" href="styles/conductor.css">
 </head>
 
 <body>
+  <header class="header">
+    <h2>🚍 Transpoli - Panel del Conductor</h2>    
+    <div style="margin-bottom: 20px; text-align: right;">
+      <button onclick="logout()" class="btn-logout">🔒 Cerrar sesión</button>
+    </div>
+  </header>
 
-  <h1>Panel del Conductor</h1>
-  <div style="margin-bottom: 20px; text-align: right;">
-    <button onclick="logout()" class="btn-logout">🔒 Cerrar sesión</button>
-  </div>  
+  <h1>Bienvenido Conductor</h1>
+
   <div class="info" id="infoRuta">Cargando ruta asignada...</div>
   <div id="mapa"></div>
   <p class="mensaje" id="mensaje"></p>
@@ -166,5 +118,10 @@
     }
   </script>
 </body>
+
+<footer class="footer">
+  <p>© 2025 Transpoli - Politécnico Grancolombiano. Todos los derechos reservados.</p>
+  <p>Desarrollado por el equipo Transpoli 🚍</p>
+</footer>
 
 </html>

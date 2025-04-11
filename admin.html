@@ -8,103 +8,18 @@
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/leaflet.awesome-markers@2.0.4/dist/leaflet.awesome-markers.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #eef5ff;
-      margin: 0;
-      padding: 20px;
-    }
-
-    h1 {
-      color: #007bff;
-    }
-
-    .contenido {
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background-color: #fff;
-    }
-
-    th,
-    td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-    }
-
-    th {
-      background-color: #007bff;
-      color: white;
-    }
-
-    .formulario {
-      margin-top: 30px;
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 500px;
-    }
-
-    input {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0 15px 0;
-    }
-
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      margin-right: 5px;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    .mensaje {
-      margin-top: 10px;
-      color: green;
-    }
-
-    .error {
-      color: red;
-    }
-    
-    .btn-logout {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .btn-logout:hover {
-      background-color: #c82333;
-    }
-  </style>
+  <link rel="stylesheet" href="styles/admin.css">
 </head>
 
 <body>
-  <h1>Bienvenido Administrador</h1>
-  <div style="margin-bottom: 20px; text-align: right;">
-    <button onclick="logout()" class="btn-logout">🔒 Cerrar sesión</button>
-  </div>  
+  <header class="header">
+    <h2>🚍 Transpoli - Panel Administrador</h2>    
+    <div style="margin-bottom: 20px; text-align: right;">
+      <button onclick="logout()" class="btn-logout">🔒 Cerrar sesión</button>
+    </div>
+  </header>
+
+  <h1>Bienvenido Administrador</h1>  
   <div style="margin-bottom: 20px;">
     <button onclick="window.location.href='usuarios.html'">👥 Gestión de Usuarios</button>
   </div>
@@ -379,5 +294,10 @@
     }
   </script>
 </body>
+
+<footer class="footer">
+  <p>© 2025 Transpoli - Politécnico Grancolombiano. Todos los derechos reservados.</p>
+  <p>Desarrollado por el equipo Transpoli 🚍</p>
+</footer>
 
 </html>
